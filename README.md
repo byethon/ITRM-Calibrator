@@ -1,5 +1,5 @@
 # ITRM-Calibrator
-Python Script to calibrate Diy In-ear-monitor(IEM) Test Rig Mics using the frequency response of known IEMs.<br>
+Python Script to calibrate DIY In-ear-monitor(IEM) Test Rig Mics for measurement using the frequency response of known IEMs.<br>
 
 ## About
 ITRM-Calibrator is a project aiming to make cheap diy IEM test rigs usable by automatically generating a calibration file. This is done using IEMs for which FR graphs are already available.<br>
