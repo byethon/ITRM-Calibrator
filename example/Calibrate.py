@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 
+from os import path, stat
+from sys import exit, argv
+from platform import platform
+
+if (platform()[0:7]=="Windows"):
+    import ctypes
+    kernel32 = ctypes.windll.kernel32
+    kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+
 class bcolors:
-    HEADER = '\033[95m'
     OKGREEN = '\033[92m'
-    OKBLUE = '\033[94m'
+    OKBLUE = '\033[96m'
     OKPURPLE = '\033[95m'
     INFOYELLOW = '\033[93m'
     FAIL = '\033[91m'
@@ -12,9 +20,6 @@ class bcolors:
 print(f"{bcolors.OKPURPLE}\n===================")
 print("Calibration Started")
 print(f"==================={bcolors.ENDC}")
-
-import os
-import sys
 
 def csvloader(filename):
     print(f"\n[[[ CSV loader: Loading {bcolors.OKBLUE}{filename}{bcolors.ENDC}")
@@ -109,26 +114,26 @@ def trim(inlist, limitlist, filename):
     print(f"{bcolors.OKGREEN}Trim Complete!{bcolors.ENDC} ]]]")
     return inlist
 
-if(len(sys.argv)!=4):
+if(len(argv)!=4):
     print(f"\n{bcolors.INFOYELLOW}[ {bcolors.ENDC}Please use the following format{bcolors.INFOYELLOW} ]{bcolors.ENDC}")
-    print(f"{bcolors.INFOYELLOW}[[{bcolors.ENDC} {sys.argv[0]} {bcolors.INFOYELLOW}<{bcolors.ENDC}Raw_file{bcolors.INFOYELLOW}>{bcolors.ENDC} {bcolors.INFOYELLOW}<{bcolors.ENDC}Reference_file{bcolors.INFOYELLOW}>{bcolors.ENDC} {bcolors.INFOYELLOW}<{bcolors.ENDC}Output_file{bcolors.INFOYELLOW}> ]]{bcolors.ENDC}")
-    sys.exit(f"{bcolors.FAIL}[[[ Three arguments are required!! ]]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
+    print(f"{bcolors.INFOYELLOW}[[{bcolors.ENDC} {argv[0]} {bcolors.INFOYELLOW}<{bcolors.ENDC}Raw_file{bcolors.INFOYELLOW}>{bcolors.ENDC} {bcolors.INFOYELLOW}<{bcolors.ENDC}Reference_file{bcolors.INFOYELLOW}>{bcolors.ENDC} {bcolors.INFOYELLOW}<{bcolors.ENDC}Output_file{bcolors.INFOYELLOW}> ]]{bcolors.ENDC}")
+    exit(f"{bcolors.FAIL}[[[ Three arguments are required!! ]]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
 
-if (os.path.exists(f"{sys.argv[1]}") and os.stat(f"{sys.argv[1]}").st_size != 0):
-    print(f"\n{bcolors.OKGREEN}[[ {bcolors.ENDC}Path to {bcolors.OKBLUE}{sys.argv[1]}{bcolors.ENDC} located{bcolors.OKGREEN} ]]{bcolors.ENDC}")
-    Raw_name=sys.argv[1]
+if (path.exists(f"{argv[1]}") and stat(f"{argv[1]}").st_size != 0):
+    print(f"\n{bcolors.OKGREEN}[[ {bcolors.ENDC}Path to {bcolors.OKBLUE}{argv[1]}{bcolors.ENDC} located{bcolors.OKGREEN} ]]{bcolors.ENDC}")
+    Raw_name=argv[1]
 else:
-    print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Error opening {bcolors.OKBLUE}{sys.argv[1]}{bcolors.FAIL}: No Such file or Empty file{bcolors.FAIL} ]{bcolors.ENDC}")
-    sys.exit(f"{bcolors.FAIL}[[ Check if file exists or has some data! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
+    print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Error opening {bcolors.OKBLUE}{argv[1]}{bcolors.FAIL}: No Such file or Empty file{bcolors.FAIL} ]{bcolors.ENDC}")
+    exit(f"{bcolors.FAIL}[[ Check if file exists or has some data! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
 
-if (os.path.exists(f"{sys.argv[2]}") and os.stat(f"{sys.argv[2]}").st_size != 0):
-    print(f"\n{bcolors.OKGREEN}[[ {bcolors.ENDC}Path to {bcolors.OKBLUE}{sys.argv[2]}{bcolors.ENDC} located{bcolors.OKGREEN} ]]{bcolors.ENDC}")
-    Cal_name=sys.argv[2]
+if (path.exists(f"{argv[2]}") and stat(f"{argv[2]}").st_size != 0):
+    print(f"\n{bcolors.OKGREEN}[[ {bcolors.ENDC}Path to {bcolors.OKBLUE}{argv[2]}{bcolors.ENDC} located{bcolors.OKGREEN} ]]{bcolors.ENDC}")
+    Cal_name=argv[2]
 else:
-    print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Error opening {bcolors.OKBLUE}{sys.argv[2]}{bcolors.FAIL}: No Such file or Empty file{bcolors.FAIL} ]{bcolors.ENDC}")
-    sys.exit(f"{bcolors.FAIL}[[ Check if file exists or has some data! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
+    print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Error opening {bcolors.OKBLUE}{argv[2]}{bcolors.FAIL}: No Such file or Empty file{bcolors.FAIL} ]{bcolors.ENDC}")
+    exit(f"{bcolors.FAIL}[[ Check if file exists or has some data! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
 
-Out_name=sys.argv[3]
+Out_name=argv[3]
 
 Raw_data=csvloader(Raw_name)
 Cal_data=csvloader(Cal_name)
