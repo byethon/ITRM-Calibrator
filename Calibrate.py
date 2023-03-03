@@ -87,14 +87,17 @@ def lin_inter(ref, ref_name, slope_gen, slope_name):
         x1=slope_gen[i-1][0]
         x2=slope_gen[i][0]
         i+=1
-        slope=(y2-y1)/(x2-x1)
         while(j<=max_j):
             if(ref[j][0]<x1):
                 j+=1
+            elif(ref[j][0]==x1):
+            	list1.append((ref[j][0],y1))
+            	j+=1
             elif(ref[j][0]<x2 and ref[j][0]>x1):
+                slope=(y2-y1)/(x2-x1)
                 list1.append((ref[j][0],slope*(ref[j][0]-x1)+y1))
                 j+=1
-            elif(ref[j][0]>x2):
+            elif(ref[j][0]>=x2):
                 break
     print(f"\n{bcolors.OKGREEN}Interpolation complete!{bcolors.ENDC} ]]]")
     return list1
