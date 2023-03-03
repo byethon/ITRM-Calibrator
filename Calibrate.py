@@ -72,42 +72,55 @@ def csvloader(filename):
     print(f"{bcolors.OKGREEN}CSV loading done!{bcolors.ENDC} ]]]")
     return list1
 
-def lin_inter(ref, ref_name, slope_gen, slope_name):
+def lin_inter(ref, ref_name, slope_gen, slope_name, comlist=[]):
     print("\n[[[ Linear Interpolator starting...")
     print(f"Using {bcolors.OKBLUE}{slope_name}{bcolors.ENDC} as slope generator and {bcolors.OKBLUE}{ref_name}{bcolors.ENDC} as reference")
+    comlist2=[]
     list1=[]
-    i=1
+    i=0
     j=0
     max_i=len(slope_gen)-1
     max_j=len(ref)-1
-    while (i<=max_i):
+    while (i<max_i):
+        i+=1
         print(f"{bcolors.OKBLUE}{round(i/max_i*100,2)}%{bcolors.ENDC} {bcolors.INFOYELLOW}Done{bcolors.ENDC}", end='\r')
         y1=slope_gen[i-1][1]
         y2=slope_gen[i][1]
         x1=slope_gen[i-1][0]
         x2=slope_gen[i][0]
-        i+=1
+        slope=(y2-y1)/(x2-x1)
         while(j<=max_j):
+            if (j) in comlist:
+                j+=1
+                continue
             if(ref[j][0]<x1):
                 j+=1
             elif(ref[j][0]==x1):
             	list1.append((ref[j][0],y1))
+            	comlist2.append(i-1)
             	j+=1
             elif(ref[j][0]<x2 and ref[j][0]>x1):
-                slope=(y2-y1)/(x2-x1)
                 list1.append((ref[j][0],slope*(ref[j][0]-x1)+y1))
                 j+=1
             elif(ref[j][0]>=x2):
                 break
+    if(max_i not in comlist and slope_gen[max_i][0]==ref[max_j][0]):
+        list1.append((ref[max_j][0],slope_gen[max_i][1]))
+        comlist2.append(max_i)
     print(f"\n{bcolors.OKGREEN}Interpolation complete!{bcolors.ENDC} ]]]")
-    return list1
+    return list1, comlist2
 
 def trim(inlist, limitlist, filename):
     print("\n[[[ Trim initiated...")
     i=0
     print("Geting limits...")
+    if(not inlist or not limitlist):
+        print(f"Input Lists have exact common bins!")
+        print(f"Emptying out {bcolors.OKBLUE}{filename}{bcolors.ENDC}")
+        print(f"{bcolors.OKGREEN}Trim Complete!{bcolors.ENDC} ]]]")
+        return []
     while inlist[i][0]!=limitlist[0][0]:
-        i+=1
+            i+=1
     print(f"Triming data at start of {bcolors.OKBLUE}{filename}{bcolors.ENDC}")
     while len(inlist)>len(limitlist)+i:
         inlist.pop(-1)
@@ -141,8 +154,8 @@ Out_name=argv[3]
 Raw_data=csvloader(Raw_name)
 Cal_data=csvloader(Cal_name)
 
-Cal_inter=lin_inter(Raw_data, Raw_name, Cal_data, Cal_name)
-Raw_inter=lin_inter(Cal_data, Cal_name, Raw_data, Raw_name)
+Cal_inter,common=lin_inter(Raw_data, Raw_name, Cal_data, Cal_name)
+Raw_inter=lin_inter(Cal_data, Cal_name, Raw_data, Raw_name, common)[0]
 
 Raw_data=trim(Raw_data, Cal_inter, Raw_name)+Raw_inter
 Cal_data=trim(Cal_data, Raw_inter, Cal_name)+Cal_inter
