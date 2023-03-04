@@ -21,6 +21,13 @@ print(f"{bcolors.OKPURPLE}\n===================")
 print("Calibration Started")
 print(f"==================={bcolors.ENDC}")
 
+def isfloat(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+
 def csvloader(filename):
     print(f"\n[[[ CSV loader: Loading {bcolors.OKBLUE}{filename}{bcolors.ENDC}")
     file=open(f"{filename}","r")
@@ -130,7 +137,7 @@ def trim(inlist, limitlist, filename):
     print(f"{bcolors.OKGREEN}Trim Complete!{bcolors.ENDC} ]]]")
     return inlist
 
-if(len(argv)!=4):
+if(len(argv) not in [4,5]):
     print(f"\n{bcolors.INFOYELLOW}[ {bcolors.ENDC}Please use the following format{bcolors.INFOYELLOW} ]{bcolors.ENDC}")
     print(f"{bcolors.INFOYELLOW}[[{bcolors.ENDC} {argv[0]} {bcolors.INFOYELLOW}<{bcolors.ENDC}Raw_file{bcolors.INFOYELLOW}>{bcolors.ENDC} {bcolors.INFOYELLOW}<{bcolors.ENDC}Reference_file{bcolors.INFOYELLOW}>{bcolors.ENDC} {bcolors.INFOYELLOW}<{bcolors.ENDC}Output_file{bcolors.INFOYELLOW}> ]]{bcolors.ENDC}")
     exit(f"{bcolors.FAIL}[[[ Three arguments are required!! ]]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
@@ -150,6 +157,27 @@ else:
     exit(f"{bcolors.FAIL}[[ Check if file exists or has some data! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
 
 Out_name=argv[3]
+if(len(argv)==4):
+    limit=['LL',-20]
+else:
+    limit=argv[4]
+    limit=limit.split('=')
+    if(len(limit)==2):
+        limit[0]=limit[0].strip()
+        limit[1]=limit[1].strip()
+        if(limit[0] in ['UL','uL','ul','Ul','LL','ll','Ll','lL']):
+            if(isfloat(limit[1])):
+                print(f"\n{bcolors.OKGREEN}[[ {bcolors.ENDC}Limit mode set! {bcolors.ENDC}{limit[0]}@{bcolors.OKBLUE}{limit[1]}{bcolors.ENDC}dB Set{bcolors.OKGREEN} ]]{bcolors.ENDC}")
+            else:
+                print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Limit is NaN! {bcolors.OKBLUE}{limit[1]}{bcolors.FAIL}: Enter a valid Value.{bcolors.FAIL} ]{bcolors.ENDC}")
+                exit(f"{bcolors.FAIL}[[ Check set limit! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
+        else:
+            print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Limit mode set is not Valid! {bcolors.OKBLUE}{limit[1]}{bcolors.FAIL}: Set a valid mode.{bcolors.FAIL} ]{bcolors.ENDC}")
+            exit(f"{bcolors.FAIL}[[ Check set limit mode! ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
+    else:
+        print(f"\n{bcolors.FAIL}[ {bcolors.ENDC}Check Limit Argument! {bcolors.OKBLUE}{limit[1]}{bcolors.FAIL}: Set a valid mode.{bcolors.FAIL} ]{bcolors.ENDC}")
+        exit(f"{bcolors.FAIL}[[ Input Limit argument as {bcolors.INFOYELLOW}<{bcolors.ENDC}Limit mode{bcolors.INFOYELLOW}>={bcolors.ENDC}{bcolors.INFOYELLOW}<{bcolors.ENDC}Limit Value{bcolors.INFOYELLOW}> ]]\n\n=================\nCalibration Exit!\n=================\n{bcolors.ENDC}")
+        
 
 Raw_data=csvloader(Raw_name)
 Cal_data=csvloader(Cal_name)
@@ -172,27 +200,40 @@ print(f"{bcolors.INFOYELLOW}[ {bcolors.ENDC}No calibration applied beyond these 
 
 i=0
 min_val=0
-Final_data=[]
+Final_freq=[]
+Final_cal=[]
 print("\n[[[ Calculating calibrated values...") 
 while i<len(Raw_data):
     print(f"{bcolors.OKBLUE}{round((i+1)/len(Raw_data)*100,2)}%{bcolors.INFOYELLOW} Done{bcolors.ENDC}", end='\r')
-    Final_data.append((Raw_data[i][0],Raw_data[i][1]-Cal_data[i][1]))
+    Final_freq.append(Raw_data[i][0])
+    Final_cal.append(Raw_data[i][1]-Cal_data[i][1])
     i+=1
 print(f"\n{bcolors.OKGREEN}Values Calculated!{bcolors.ENDC} ]]]")
-l_limit=-20
-buffer=l_limit-min(Final_data)[1]
-print(f"\nLower Limit Set:{bcolors.OKBLUE}{l_limit}{bcolors.ENDC}dB")
+typel=''
+if(limit[0] in ['ll','LL','Ll','lL']):
+    buffer=float(limit[1])-min(Final_cal)
+    typel='Lower'
+    typel2='Upper'
+    detect=max(Final_cal)+buffer
+else:
+    buffer=float(limit[1])-max(Final_cal)
+    typel='Upper'
+    typel2='Lower'
+    detect=min(Final_cal)+buffer
+print(f"\n{typel} Limit Set:{bcolors.OKBLUE}{limit[1]}{bcolors.ENDC}dB")
 print(f"{bcolors.INFOYELLOW}-----------{bcolors.ENDC}")
-print(f"[[ {bcolors.INFOYELLOW}INFO{bcolors.ENDC}: The lower limit sets the minimum amp value to be output the the calibrated CSV. If this value drops below -20 Room Eq Wizard Ignores it for calibration. ]]")
+print(f"[[ {bcolors.INFOYELLOW}INFO{bcolors.ENDC}: The lower limit is the minimum amp value to be output the the calibrated CSV. If this value drops below -20 Room Eq Wizard Ignores it for calibration. Similarly The upper limit is the maximum amp value to be output the the calibrated CSV. ]]")
 print(f"\nBuffer Value Set: {bcolors.OKBLUE}{buffer}{bcolors.ENDC}dB")
 print(f"{bcolors.INFOYELLOW}------------{bcolors.ENDC}")
-print(f"[[ {bcolors.INFOYELLOW}INFO{bcolors.ENDC}: Buffer Value is the number added to calibrated data so that it respects Lower Limit Set. ]]")
+print(f"[[ {bcolors.INFOYELLOW}INFO{bcolors.ENDC}: Buffer Value is the number added to calibrated data so that it respects the Limit Set. ]]")
+print(f"\nFinal {typel2} Limit detected:{bcolors.OKBLUE}{detect}{bcolors.ENDC}dB")
+print(f"{bcolors.INFOYELLOW}      -----------{bcolors.ENDC}")
 print(f"\nFile Output Started to {bcolors.OKBLUE}{Out_name}{bcolors.ENDC}...")
 i=0
 outfile=open(f"{Out_name}","w")
-while i<len(Final_data):
-    print(f"{bcolors.OKBLUE}{round((i+1)/len(Final_data)*100,2)}%{bcolors.INFOYELLOW} Done{bcolors.ENDC}", end='\r')
-    outfile.write(f"{round(Final_data[i][0],6)}, {round(Final_data[i][1]+buffer,6)}\n")
+while i<len(Final_freq):
+    print(f"{bcolors.OKBLUE}{round((i+1)/len(Final_freq)*100,2)}%{bcolors.INFOYELLOW} Done{bcolors.ENDC}", end='\r')
+    outfile.write(f"{round(Final_freq[i],6)}, {round(Final_cal[i]+buffer,6)}\n")
     i+=1
 print(f"\nTotal lines written: {bcolors.OKBLUE}{i}{bcolors.ENDC}")
 print(f"{bcolors.OKGREEN}Write Successful{bcolors.ENDC}")
